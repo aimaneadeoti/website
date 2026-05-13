@@ -1,0 +1,10 @@
+{
+  "name": "IllimiTrack",
+  "short_name": "IllimiTrack",
+  "description": "Gestion des illimités Moov, MTN et Celtis",
+  "start_url": "/website/",
+  "display": "standalone",
+  "background_color": "#2E4036",
+  "theme_color": "#2E4036",
+  "orientation": "portrait"
+}
