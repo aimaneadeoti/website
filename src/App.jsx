@@ -80,12 +80,13 @@ export default function App() {
     setTimeout(() => setToast(null), 3000);
   };
 
-  const handleAdd = async (clientData) => {
-    await addClient(clientData);
+  const handleAddAll = async (allClients) => {
+    await Promise.all(allClients.map(c => addClient(c)));
     await loadClients();
     setShowForm(false);
     setView('list');
-    showToast('✅ Client ajouté avec succès');
+    const n = allClients.length;
+    showToast(`✅ ${n > 1 ? `${n} numéros ajoutés` : 'Client ajouté'} avec succès`);
   };
 
   const handleDelete = async (id) => {
@@ -299,7 +300,9 @@ export default function App() {
       {/* Add / Renew form modal */}
       {showForm && (
         <AddClientForm
-          onAdd={renewClient ? (data) => handleRenewSubmit(data, renewClient) : handleAdd}
+          onAdd={renewClient
+            ? (records) => handleRenewSubmit(records[0], renewClient)
+            : handleAddAll}
           onClose={() => { setShowForm(false); setRenewClient(null); }}
           prefill={renewClient}
         />

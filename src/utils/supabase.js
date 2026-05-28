@@ -13,6 +13,8 @@ const toRow = (c) => ({
   activation_date: c.activationDate,
   expiration_date: c.expirationDate,
   created_at: c.createdAt,
+  contact: c.contact || null,
+  contact_phone: c.contactPhone || null,
 });
 
 const fromRow = (r) => ({
@@ -24,6 +26,8 @@ const fromRow = (r) => ({
   expirationDate: r.expiration_date,
   createdAt: r.created_at,
   history: r.history || [],
+  contact: r.contact || null,
+  contactPhone: r.contact_phone || null,
 });
 
 export async function getClients() {

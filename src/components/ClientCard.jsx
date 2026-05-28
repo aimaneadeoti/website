@@ -30,9 +30,10 @@ const formatPhone = (phone) => {
 
 const buildWhatsAppMessage = (client, status) => {
   const op = client.operator.toUpperCase();
+  const contactName = client.contact || client.name;
   const msg = status === 'expires_today'
-    ? `Bonjour ${client.name} ! 👋\n\nVotre illimité ${op} expire aujourd'hui. Souhaitez-vous le renouveler ? 📶`
-    : `Bonjour ${client.name} ! 👋\n\nVotre illimité ${op} expire demain (${fmtShort(client.expirationDate)}). Souhaitez-vous le renouveler ? 📶`;
+    ? `Bonjour ${contactName} ! 👋\n\nVotre illimité ${op} expire aujourd'hui. Souhaitez-vous le renouveler ? 📶`
+    : `Bonjour ${contactName} ! 👋\n\nVotre illimité ${op} expire demain (${fmtShort(client.expirationDate)}). Souhaitez-vous le renouveler ? 📶`;
   return encodeURIComponent(msg);
 };
 
@@ -44,8 +45,12 @@ export default function ClientCard({ client, onDelete, onRenew }) {
   const [showWaPicker, setShowWaPicker] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
 
+  // Use contact phone for WhatsApp if available, else activation phone
+  const whatsappPhone = client.contactPhone || client.phone;
+  const isSecondary = client.contactPhone && client.contactPhone !== client.phone;
+
   const openWhatsApp = (business) => {
-    const phone = formatPhone(client.phone);
+    const phone = formatPhone(whatsappPhone);
     const msg = buildWhatsAppMessage(client, status);
     const url = business
       ? `https://wa.me/${phone}?text=${msg}`
@@ -77,6 +82,11 @@ export default function ClientCard({ client, onDelete, onRenew }) {
           <div className="flex items-center gap-1 text-gray-500 text-sm mt-0.5">
             <Phone size={13} />
             <span>{client.phone}</span>
+            {isSecondary && (
+              <span className="ml-1 text-xs bg-purple-100 text-purple-600 font-medium px-1.5 py-0.5 rounded-full">
+                via {client.contact}
+              </span>
+            )}
           </div>
 
           <div className="flex items-center gap-1 text-gray-500 text-sm mt-0.5">
