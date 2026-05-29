@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Bell, Users, PlusCircle, Search, BellOff, TrendingUp, LogOut } from 'lucide-react';
 import ClientCard from './components/ClientCard';
 import AddClientForm from './components/AddClientForm';
+import AddNumberModal from './components/AddNumberModal';
 import StatsView from './components/StatsView';
 import AuthPage from './components/AuthPage';
 import { getClients, addClient, renewClient as renewClientInDb, deleteClient, supabase } from './utils/supabase';
@@ -23,6 +24,7 @@ export default function App() {
   const [filter, setFilter] = useState('all');
   const [showForm, setShowForm] = useState(false);
   const [renewClient, setRenewClient] = useState(null);
+  const [addNumberClient, setAddNumberClient] = useState(null);
   const [notifGranted, setNotifGranted] = useState(false);
   const [alertBanner, setAlertBanner] = useState([]);
   const [notRenewedBanner, setNotRenewedBanner] = useState([]);
@@ -98,6 +100,14 @@ export default function App() {
   const handleRenew = (client) => {
     setRenewClient(client);
     setShowForm(true);
+  };
+
+  const handleAddNumber = async (records) => {
+    await Promise.all(records.map(c => addClient(c)));
+    await loadClients();
+    setAddNumberClient(null);
+    const n = records.length;
+    showToast(`✅ ${n > 1 ? `${n} numéros ajoutés` : 'Numéro ajouté'} avec succès`);
   };
 
   const handleRenewSubmit = async (clientData, originalClient) => {
@@ -261,6 +271,7 @@ export default function App() {
               client={client}
               onDelete={handleDelete}
               onRenew={handleRenew}
+              onAddNumber={(c) => setAddNumberClient(c)}
             />
           ))
         ))}
@@ -305,6 +316,15 @@ export default function App() {
             : handleAddAll}
           onClose={() => { setShowForm(false); setRenewClient(null); }}
           prefill={renewClient}
+        />
+      )}
+
+      {/* Add number modal */}
+      {addNumberClient && (
+        <AddNumberModal
+          client={addNumberClient}
+          onAdd={handleAddNumber}
+          onClose={() => setAddNumberClient(null)}
         />
       )}
 

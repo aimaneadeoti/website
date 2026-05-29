@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Trash2, Phone, Calendar, RefreshCw, MessageCircle, ChevronDown, ChevronUp } from 'lucide-react';
+import { Trash2, Phone, Calendar, RefreshCw, MessageCircle, ChevronDown, ChevronUp, PlusCircle } from 'lucide-react';
 import { getClientStatus } from '../utils/notifications';
 
 const OPERATOR_STYLES = {
@@ -37,7 +37,7 @@ const buildWhatsAppMessage = (client, status) => {
   return encodeURIComponent(msg);
 };
 
-export default function ClientCard({ client, onDelete, onRenew }) {
+export default function ClientCard({ client, onDelete, onRenew, onAddNumber }) {
   const status = getClientStatus(client.expirationDate);
   const op = OPERATOR_STYLES[client.operator] || OPERATOR_STYLES.moov;
   const st = STATUS_STYLES[status];
@@ -141,6 +141,13 @@ export default function ClientCard({ client, onDelete, onRenew }) {
               )}
             </div>
           )}
+          <button
+            onClick={() => onAddNumber(client)}
+            className="p-2 rounded-xl bg-purple-50 text-purple-500 hover:bg-purple-100 transition-colors"
+            title="Ajouter un numéro"
+          >
+            <PlusCircle size={16} />
+          </button>
           <button
             onClick={() => onRenew(client)}
             className="p-2 rounded-xl bg-green-50 text-green-600 hover:bg-green-100 transition-colors"
