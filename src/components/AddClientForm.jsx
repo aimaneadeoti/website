@@ -28,22 +28,35 @@ export default function AddClientForm({ onAdd, onClose, prefill }) {
     e.preventDefault();
     if (!contact.trim()) return setError('Le nom du contact est obligatoire');
     if (!contactPhone.trim()) return setError('Le numéro du contact est obligatoire');
-    const validPhones = phones.map(p => p.trim()).filter(Boolean);
-    if (validPhones.length === 0) return setError('Ajoute au moins un numéro à activer');
     if (new Date(expirationDate) <= new Date(activationDate))
       return setError("La date d'expiration doit être après l'activation");
     setError('');
 
-    const records = validPhones.map(phone => ({
-      name: contact.trim(),
-      phone,
-      operator,
-      activationDate,
-      expirationDate,
-      contact: contact.trim(),
-      contactPhone: contactPhone.trim(),
-    }));
-    onAdd(records);
+    const validPhones = phones.map(p => p.trim()).filter(Boolean);
+
+    if (validPhones.length === 0) {
+      // Enregistrer juste le contact principal sans numéro d'activation
+      onAdd([{
+        name: contact.trim(),
+        phone: contactPhone.trim(),
+        operator,
+        activationDate,
+        expirationDate,
+        contact: contact.trim(),
+        contactPhone: contactPhone.trim(),
+      }]);
+    } else {
+      const records = validPhones.map(phone => ({
+        name: contact.trim(),
+        phone,
+        operator,
+        activationDate,
+        expirationDate,
+        contact: contact.trim(),
+        contactPhone: contactPhone.trim(),
+      }));
+      onAdd(records);
+    }
   };
 
   return (
