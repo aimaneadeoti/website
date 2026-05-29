@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { getClientStatus } from '../utils/notifications';
 
 const OPERATORS = [
@@ -63,15 +62,14 @@ export default function StatsView({ clients }) {
   const now = new Date();
   const [month, setMonth] = useState(now.getMonth());
   const [year, setYear] = useState(now.getFullYear());
+  const [showPicker, setShowPicker] = useState(false);
 
-  const prevMonth = () => {
-    if (month === 0) { setMonth(11); setYear(y => y - 1); }
-    else setMonth(m => m - 1);
-  };
-  const nextMonth = () => {
-    if (month === 11) { setMonth(0); setYear(y => y + 1); }
-    else setMonth(m => m + 1);
-  };
+  // Collect available years from clients + current year
+  const years = [...new Set([
+    now.getFullYear(),
+    now.getFullYear() - 1,
+    ...clients.map(c => new Date(c.activationDate).getFullYear()),
+  ])].sort((a, b) => b - a);
 
   const filtered = clients.filter(c => {
     const d = new Date(c.activationDate);
@@ -91,19 +89,45 @@ export default function StatsView({ clients }) {
 
   return (
     <div className="pt-4">
-      {/* Sélecteur de mois */}
-      <div className="flex items-center justify-between bg-white rounded-2xl px-4 py-3 shadow-sm border border-gray-100 mb-4">
-        <button onClick={prevMonth} className="p-1.5 rounded-xl hover:bg-gray-100 transition-colors">
-          <ChevronLeft size={20} className="text-gray-600" />
-        </button>
-        <div className="text-center">
-          <p className="font-bold text-gray-900 text-sm">{MOIS[month]} {year}</p>
-          {isCurrentMonth && <p className="text-xs text-[#111827] font-medium">Ce mois-ci</p>}
+      {/* Sélecteur de mois cliquable */}
+      <button
+        onClick={() => setShowPicker(v => !v)}
+        className="w-full bg-white rounded-2xl px-4 py-3 shadow-sm border border-gray-100 mb-2 text-center active:bg-gray-50 transition-colors"
+      >
+        <p className="font-bold text-gray-900 text-sm">{MOIS[month]} {year}</p>
+        {isCurrentMonth && <p className="text-xs text-[#111827] font-medium">Ce mois-ci</p>}
+        <p className="text-xs text-gray-400 mt-0.5">Appuie pour changer</p>
+      </button>
+
+      {/* Picker déroulant */}
+      {showPicker && (
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-md mb-4 overflow-hidden">
+          {years.map(y => (
+            <div key={y}>
+              <p className="text-xs font-bold text-gray-400 px-4 pt-3 pb-1 uppercase tracking-wide">{y}</p>
+              <div className="grid grid-cols-3 gap-1 px-3 pb-3">
+                {MOIS.map((m, i) => {
+                  const selected = i === month && y === year;
+                  return (
+                    <button
+                      key={i}
+                      onClick={() => { setMonth(i); setYear(y); setShowPicker(false); }}
+                      className={`py-2 rounded-xl text-sm font-semibold transition-all ${
+                        selected
+                          ? 'bg-[#111827] text-white'
+                          : 'text-gray-600 hover:bg-gray-100'
+                      }`}
+                    >
+                      {m.slice(0, 3)}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
         </div>
-        <button onClick={nextMonth} className="p-1.5 rounded-xl hover:bg-gray-100 transition-colors">
-          <ChevronRight size={20} className="text-gray-600" />
-        </button>
-      </div>
+      )}
+
 
       <h2 className="text-base font-bold text-gray-800 mb-4">Répartition par opérateur</h2>
 
