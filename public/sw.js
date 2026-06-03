@@ -55,41 +55,23 @@ async function checkAndNotify() {
     exp.setHours(0, 0, 0, 0);
     const isToday = exp.getTime() === today.getTime();
     const isTomorrow = exp.getTime() === tomorrow.getTime();
-    const daysSinceExpiry = Math.round((today - exp) / (1000 * 60 * 60 * 24));
-    const notRenewed = daysSinceExpiry >= 3;
 
-    if (!isToday && !isTomorrow && !notRenewed) continue;
+    if (!isToday && !isTomorrow) continue;
 
     const op = (client.operator || '').toUpperCase();
+    const notifKey = `${client.id}_${todayKey}`;
+    if (await isAlreadyNotified(notifKey)) continue;
 
-    if (isToday || isTomorrow) {
-      const notifKey = `${client.id}_${todayKey}`;
-      if (await isAlreadyNotified(notifKey)) continue;
-      const title = isToday ? '⚠️ Illimité expire AUJOURD\'HUI' : '⏰ Illimité expire DEMAIN';
-      await self.registration.showNotification(`KKT Store — ${title}`, {
-        body: `${client.name} — ${op} · ${client.phone}`,
-        icon: '/icons/icon-192.png',
-        badge: '/icons/icon-192.png',
-        tag: notifKey,
-        vibrate: [200, 100, 200],
-        requireInteraction: isToday,
-      });
-      await markNotified(notifKey);
-    }
-
-    if (notRenewed) {
-      const notifKey = `norenew_${client.id}_${todayKey}`;
-      if (await isAlreadyNotified(notifKey)) continue;
-      await self.registration.showNotification(`KKT Store — 🔴 Pas de renouvellement`, {
-        body: `${client.name} n'a pas encore renouvelé (${daysSinceExpiry}j) · ${op}`,
-        icon: '/icons/icon-192.png',
-        badge: '/icons/icon-192.png',
-        tag: notifKey,
-        vibrate: [300, 100, 300],
-        requireInteraction: true,
-      });
-      await markNotified(notifKey);
-    }
+    const title = isToday ? '⚠️ Illimité expire AUJOURD\'HUI' : '⏰ Illimité expire DEMAIN';
+    await self.registration.showNotification(`KKT Store — ${title}`, {
+      body: `${client.name} — ${op} · ${client.phone}`,
+      icon: '/icons/icon-192.png',
+      badge: '/icons/icon-192.png',
+      tag: notifKey,
+      vibrate: [200, 100, 200],
+      requireInteraction: isToday,
+    });
+    await markNotified(notifKey);
   }
 }
 
