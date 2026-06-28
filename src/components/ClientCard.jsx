@@ -30,9 +30,18 @@ const formatPhone = (phone) => {
 
 const buildWhatsAppMessage = (client, status) => {
   const op = client.operator.toUpperCase();
-  const msg = status === 'expires_today'
-    ? `Bonjour ${client.name} ! 👋\n\nVotre illimité ${op} expire aujourd'hui. Souhaitez-vous le renouveler ? 📶`
-    : `Bonjour ${client.name} ! 👋\n\nVotre illimité ${op} expire demain (${fmtShort(client.expirationDate)}). Souhaitez-vous le renouveler ? 📶`;
+  const date = fmtShort(client.expirationDate);
+
+  let body;
+  if (status === 'expired') {
+    body = `Votre illimité ${op} s'est expiré depuis le ${date}. Souhaitez-vous le renouveler ? 📶`;
+  } else if (status === 'expires_today') {
+    body = `Votre illimité ${op} expire aujourd'hui (${date}). Souhaitez-vous le renouveler ? 📶`;
+  } else {
+    body = `Votre illimité ${op} expire demain (${date}). Souhaitez-vous le renouveler ? 📶`;
+  }
+
+  const msg = `Bonjour chers clients : ${client.name} ! 👋\n\n${body}`;
   return encodeURIComponent(msg);
 };
 
