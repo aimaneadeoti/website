@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ChevronLeft, ChevronRight, Settings, X } from 'lucide-react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { getClientStatus } from '../utils/notifications';
 
 const OPERATORS = [
@@ -9,24 +9,6 @@ const OPERATORS = [
 ];
 
 const MOIS = ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
-
-const DEFAULT_PRICES = {
-  moov:   { cost: 4250 },
-  mtn:    { cost: 4000 },
-  celtis: { cost: 0 },
-};
-
-function loadPrices() {
-  try {
-    const saved = JSON.parse(localStorage.getItem('kkt-prices'));
-    if (!saved) return DEFAULT_PRICES;
-    return {
-      moov:   { cost: saved.moov?.cost   ?? 4250 },
-      mtn:    { cost: saved.mtn?.cost    ?? 4000 },
-      celtis: { cost: saved.celtis?.cost ?? 0    },
-    };
-  } catch { return DEFAULT_PRICES; }
-}
 
 const fmt = (n) => n.toLocaleString('fr-FR') + ' F';
 
@@ -114,9 +96,6 @@ export default function StatsView({ clients }) {
   const [showPicker, setShowPicker] = useState(false);
   const [dateFrom, setDateFrom] = useState(firstOfMonth());
   const [dateTo, setDateTo] = useState(todayStr());
-  const [prices, setPrices] = useState(loadPrices);
-  const [showPriceModal, setShowPriceModal] = useState(false);
-  const [editPrices, setEditPrices] = useState(loadPrices);
 
   const years = [...new Set([
     now.getFullYear(), now.getFullYear() - 1,
@@ -140,21 +119,18 @@ export default function StatsView({ clients }) {
     expired: filtered.filter(c => c.operator === op.key && getClientStatus(c.expirationDate) === 'expired').length,
   }));
 
-  const revenue = filtered.reduce((s, c) => s + (c.price || 0), 0);
-  const cost    = filtered.reduce((s, c) => s + (prices[c.operator]?.cost || 0), 0);
-  const profit  = revenue - cost;
+  const totalAmount = filtered.reduce((s, c) => s + (c.price || 0), 0);
+
+  const todayAmount = clients
+    .filter(c => c.activationDate === todayStr())
+    .reduce((s, c) => s + (c.price || 0), 0);
+  const todayCount = clients.filter(c => c.activationDate === todayStr()).length;
 
   const isCurrentMonth = month === now.getMonth() && year === now.getFullYear();
 
   const periodLabel = mode === 'month'
     ? `${MOIS[month]} ${year}`
     : `${new Date(dateFrom).toLocaleDateString('fr-FR', { day:'2-digit', month:'short' })} → ${new Date(dateTo).toLocaleDateString('fr-FR', { day:'2-digit', month:'short' })}`;
-
-  const savePrices = () => {
-    localStorage.setItem('kkt-prices', JSON.stringify(editPrices));
-    setPrices(editPrices);
-    setShowPriceModal(false);
-  };
 
   return (
     <div className="pt-4">
@@ -227,36 +203,24 @@ export default function StatsView({ clients }) {
         </div>
       )}
 
-      {/* === FINANCES === */}
-      <div className="flex items-center justify-between mb-3 mt-2">
-        <h2 className="text-base font-bold text-gray-800">Finances — {periodLabel}</h2>
-        <button
-          onClick={() => { setEditPrices(prices); setShowPriceModal(true); }}
-          className="flex items-center gap-1 text-xs text-gray-500 bg-white border border-gray-200 px-3 py-1.5 rounded-xl hover:bg-gray-50 transition-colors"
-        >
-          <Settings size={13} /> Prix
-        </button>
+      {/* === MONTANT GÉNÉRÉ === */}
+      <h2 className="text-base font-bold text-gray-800 mb-3 mt-2">Ventes — {periodLabel}</h2>
+
+      <div className="grid grid-cols-2 gap-2 mb-4">
+        <div className="bg-[#111827] rounded-2xl p-3 text-center">
+          <p className="text-xs font-semibold text-white opacity-80">Montant total généré</p>
+          <p className="text-sm font-bold mt-0.5 text-white leading-tight">{fmt(totalAmount)}</p>
+        </div>
+        <div className="bg-green-50 border border-green-100 rounded-2xl p-3 text-center">
+          <p className="text-xs font-semibold text-green-700 opacity-80">Aujourd'hui ({todayCount})</p>
+          <p className="text-sm font-bold mt-0.5 text-green-700 leading-tight">{fmt(todayAmount)}</p>
+        </div>
       </div>
 
-      <div className="grid grid-cols-3 gap-2 mb-4">
-        {[
-          { label: 'Revenus', value: fmt(revenue), color: 'bg-green-50 border-green-100', text: 'text-green-700' },
-          { label: 'Coût', value: fmt(cost), color: 'bg-orange-50 border-orange-100', text: 'text-orange-700' },
-          { label: 'Bénéfice', value: fmt(profit), color: profit >= 0 ? 'bg-[#111827]' : 'bg-red-600', text: 'text-white' },
-        ].map(card => (
-          <div key={card.label} className={`${card.color} rounded-2xl p-3 border text-center`}>
-            <p className={`text-xs font-semibold ${card.text} opacity-80`}>{card.label}</p>
-            <p className={`text-sm font-bold mt-0.5 ${card.text} leading-tight`}>{card.value}</p>
-          </div>
-        ))}
-      </div>
-
-      {/* Par opérateur — revenus */}
+      {/* Par opérateur — montant */}
       <div className="space-y-2 mb-5">
         {byOperator.filter(op => op.count > 0).map(op => {
-          const opRevenue = filtered.filter(c => c.operator === op.key).reduce((s, c) => s + (c.price || 0), 0);
-          const opCost    = op.count * (prices[op.key]?.cost || 0);
-          const opProfit  = opRevenue - opCost;
+          const opAmount = filtered.filter(c => c.operator === op.key).reduce((s, c) => s + (c.price || 0), 0);
           return (
             <div key={op.key} className="bg-white rounded-2xl px-4 py-3 shadow-sm border border-gray-100 flex items-center justify-between">
               <div className="flex items-center gap-2">
@@ -264,10 +228,7 @@ export default function StatsView({ clients }) {
                 <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${op.bg} ${op.text}`}>{op.label}</span>
                 <span className="text-xs text-gray-400">{op.count} activation{op.count > 1 ? 's' : ''}</span>
               </div>
-              <div className="text-right">
-                <p className="text-sm font-bold text-gray-800">{fmt(opRevenue)}</p>
-                <p className="text-xs text-gray-400">bén. {fmt(opProfit)}</p>
-              </div>
+              <p className="text-sm font-bold text-gray-800">{fmt(opAmount)}</p>
             </div>
           );
         })}
@@ -314,48 +275,6 @@ export default function StatsView({ clients }) {
         <p className="text-center text-gray-400 text-sm mt-6">
           Aucun client activé en {MOIS[month]} {year}
         </p>
-      )}
-
-      {/* Modal prix */}
-      {showPriceModal && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
-          <div className="bg-white w-full sm:max-w-md rounded-t-3xl sm:rounded-3xl p-6 shadow-xl">
-            <div className="flex items-center justify-between mb-5">
-              <h2 className="text-lg font-bold text-gray-900">Coût de revient par opérateur</h2>
-              <button onClick={() => setShowPriceModal(false)} className="p-2 rounded-xl hover:bg-gray-100">
-                <X size={20} className="text-gray-500" />
-              </button>
-            </div>
-
-            <div className="space-y-4">
-              {OPERATORS.map(op => (
-                <div key={op.key}>
-                  <p className={`text-xs font-bold px-2 py-0.5 rounded-full inline-block mb-2 ${op.bg} ${op.text}`}>{op.label}</p>
-                  <div className="grid grid-cols-1 gap-3">
-                    <div>
-                      <label className="block text-xs text-gray-500 mb-1">Coût de revient (F)</label>
-                      <input
-                        type="number"
-                        min="0"
-                        value={editPrices[op.key]?.cost || ''}
-                        onChange={e => setEditPrices(p => ({ ...p, [op.key]: { ...p[op.key], cost: Number(e.target.value) } }))}
-                        placeholder="Ex: 1000"
-                        className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#111827]"
-                      />
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <button
-              onClick={savePrices}
-              className="w-full bg-[#111827] text-white py-3.5 rounded-xl font-semibold text-sm mt-5 hover:bg-gray-800 transition-colors"
-            >
-              Enregistrer les prix
-            </button>
-          </div>
-        </div>
       )}
     </div>
   );
