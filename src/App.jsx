@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
-import { Bell, Users, PlusCircle, Search, BellOff, TrendingUp, LogOut } from 'lucide-react';
+import { Bell, Users, PlusCircle, Search, BellOff, TrendingUp, LogOut, Wallet } from 'lucide-react';
 import ClientCard from './components/ClientCard';
 import AddClientForm from './components/AddClientForm';
 import AddNumberModal from './components/AddNumberModal';
 import StatsView from './components/StatsView';
+import CaisseView from './components/CaisseView';
 import AuthPage from './components/AuthPage';
 import { getClients, addClient, renewClient as renewClientInDb, deleteClient, supabase } from './utils/supabase';
 import { requestPermission, checkAndNotify, getExpiringClients, getClientStatus } from './utils/notifications';
@@ -218,8 +219,11 @@ export default function App() {
         {/* Stats view */}
         {view === 'stats' && <StatsView clients={clients} />}
 
+        {/* Caisse view */}
+        {view === 'caisse' && <CaisseView />}
+
         {/* Client list */}
-        {view !== 'stats' && (loading ? (
+        {view !== 'stats' && view !== 'caisse' && (loading ? (
           <div className="text-center py-16 text-gray-400">
             <div className="w-8 h-8 border-2 border-gray-300 border-t-gray-700 rounded-full animate-spin mx-auto mb-3" />
             <p className="text-sm">Chargement...</p>
@@ -256,8 +260,18 @@ export default function App() {
         </button>
 
         <button
+          onClick={() => setView('caisse')}
+          className={`flex flex-col items-center gap-1 px-4 py-2 rounded-2xl transition-all ${
+            view === 'caisse' ? 'text-[#111827] bg-[#111827]/10 font-semibold' : 'text-gray-400'
+          }`}
+        >
+          <Wallet size={22} />
+          <span className="text-xs">Caisse</span>
+        </button>
+
+        <button
           onClick={() => { setRenewClient(null); setShowForm(true); }}
-          className="flex flex-col items-center gap-1 bg-[#111827] text-white px-8 py-3 rounded-2xl shadow-md hover:bg-[#1e2e26] transition-colors"
+          className="flex flex-col items-center gap-1 bg-[#111827] text-white px-6 py-3 rounded-2xl shadow-md hover:bg-[#1e2e26] transition-colors"
         >
           <PlusCircle size={22} />
           <span className="text-xs font-semibold">Ajouter</span>
