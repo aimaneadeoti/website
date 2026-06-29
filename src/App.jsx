@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react';
-import { Bell, Users, PlusCircle, Search, BellOff, TrendingUp, LogOut, Wallet } from 'lucide-react';
+import { Bell, Users, PlusCircle, Search, BellOff, TrendingUp, LogOut, Wallet, Download } from 'lucide-react';
 import ClientCard from './components/ClientCard';
 import AddClientForm from './components/AddClientForm';
 import AddNumberModal from './components/AddNumberModal';
 import StatsView from './components/StatsView';
 import CaisseView from './components/CaisseView';
 import AuthPage from './components/AuthPage';
-import { getClients, addClient, renewClient as renewClientInDb, deleteClient, supabase } from './utils/supabase';
+import { getClients, addClient, renewClient as renewClientInDb, deleteClient, supabase, getDailyBalances } from './utils/supabase';
 import { requestPermission, checkAndNotify, getExpiringClients, getClientStatus } from './utils/notifications';
 
 const FILTERS = [
@@ -108,6 +108,17 @@ export default function App() {
     if (granted) checkAndNotify(clients);
   };
 
+  const handleExportData = async () => {
+    const balances = await getDailyBalances();
+    const blob = new Blob([JSON.stringify({ clients, balances }, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `kkt-store-export-${new Date().toISOString().split('T')[0]}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   const filtered = clients
     .filter(c => filter === 'all' || c.operator === filter)
     .filter(c => {
@@ -141,6 +152,13 @@ export default function App() {
             <p className="text-gray-400 text-xs">Illimité Track · Moov · MTN · Celtis</p>
           </div>
           <div className="flex gap-2">
+            <button
+              onClick={handleExportData}
+              className="p-2.5 rounded-xl bg-white/10 text-white/70 hover:bg-white/20 transition-colors"
+              title="Exporter mes données"
+            >
+              <Download size={20} />
+            </button>
             <button
               onClick={handleNotifRequest}
               className={`p-2.5 rounded-xl transition-colors ${notifGranted ? 'bg-green-700/50 text-green-300' : 'bg-white/10 text-white/70 hover:bg-white/20'}`}
