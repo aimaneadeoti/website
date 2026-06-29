@@ -8,6 +8,7 @@ export default function AddNumberModal({ client, onAdd, onClose }) {
   const [activationDate, setActivationDate] = useState(today());
   const [expirationDate, setExpirationDate] = useState(client.expirationDate);
   const [operator, setOperator] = useState(client.operator);
+  const [price, setPrice] = useState('');
   const [error, setError] = useState('');
 
   const addPhone = () => setPhones(p => [...p, '']);
@@ -29,6 +30,7 @@ export default function AddNumberModal({ client, onAdd, onClose }) {
       expirationDate,
       contact: client.contact || client.name,
       contactPhone: client.contactPhone || client.phone,
+      price: Number(price) || 0,
     })));
   };
 
@@ -99,6 +101,18 @@ export default function AddNumberModal({ client, onAdd, onClose }) {
               <input type="date" value={expirationDate} onChange={e => setExpirationDate(e.target.value)}
                 className="w-full border border-gray-200 rounded-xl px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#111827]" />
             </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-1">Prix de vente (F CFA)</label>
+            <input
+              type="number"
+              min="0"
+              placeholder="Ex: 4500"
+              value={price}
+              onChange={e => setPrice(e.target.value)}
+              className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#111827]"
+            />
           </div>
 
           {error && <p className="text-red-500 text-sm bg-red-50 px-3 py-2 rounded-lg">{error}</p>}

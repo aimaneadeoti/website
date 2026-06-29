@@ -3,9 +3,9 @@ import { X, UserPlus, Plus, Trash2 } from 'lucide-react';
 
 const today = () => new Date().toISOString().split('T')[0];
 
-const defaultExpiration = () => {
-  const d = new Date();
-  d.setDate(d.getDate() + 30);
+const defaultExpiration = (days = 30, from) => {
+  const d = from ? new Date(from) : new Date();
+  d.setDate(d.getDate() + days);
   return d.toISOString().split('T')[0];
 };
 
@@ -17,12 +17,19 @@ export default function AddClientForm({ onAdd, onClose, prefill }) {
   );
   const [operator, setOperator] = useState(prefill?.operator || 'moov');
   const [activationDate, setActivationDate] = useState(today());
-  const [expirationDate, setExpirationDate] = useState(defaultExpiration());
+  const [expirationDate, setExpirationDate] = useState(defaultExpiration(30, today()));
+  const [price, setPrice] = useState('');
   const [error, setError] = useState('');
 
   const addPhone = () => setPhones(p => [...p, '']);
   const removePhone = (i) => setPhones(p => p.filter((_, idx) => idx !== i));
   const updatePhone = (i, val) => setPhones(p => p.map((v, idx) => idx === i ? val : v));
+
+  const handleActivationDateChange = (e) => {
+    const value = e.target.value;
+    setActivationDate(value);
+    setExpirationDate(defaultExpiration(30, value));
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -33,6 +40,7 @@ export default function AddClientForm({ onAdd, onClose, prefill }) {
     setError('');
 
     const validPhones = phones.map(p => p.trim()).filter(Boolean);
+    const priceValue = Number(price) || 0;
 
     if (validPhones.length === 0) {
       // Enregistrer juste le contact principal sans numéro d'activation
@@ -44,6 +52,7 @@ export default function AddClientForm({ onAdd, onClose, prefill }) {
         expirationDate,
         contact: contact.trim(),
         contactPhone: contactPhone.trim(),
+        price: priceValue,
       }]);
     } else {
       const records = validPhones.map(phone => ({
@@ -54,6 +63,7 @@ export default function AddClientForm({ onAdd, onClose, prefill }) {
         expirationDate,
         contact: contact.trim(),
         contactPhone: contactPhone.trim(),
+        price: priceValue,
       }));
       onAdd(records);
     }
@@ -170,7 +180,7 @@ export default function AddClientForm({ onAdd, onClose, prefill }) {
                 <input
                   type="date"
                   value={activationDate}
-                  onChange={e => setActivationDate(e.target.value)}
+                  onChange={handleActivationDateChange}
                   className="w-full border border-gray-200 rounded-xl px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#111827]"
                 />
               </div>
@@ -183,6 +193,19 @@ export default function AddClientForm({ onAdd, onClose, prefill }) {
                   className="w-full border border-gray-200 rounded-xl px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#111827]"
                 />
               </div>
+            </div>
+
+            {/* Prix de vente */}
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-1">Prix de vente (F CFA)</label>
+              <input
+                type="number"
+                min="0"
+                placeholder="Ex: 4500"
+                value={price}
+                onChange={e => setPrice(e.target.value)}
+                className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#111827]"
+              />
             </div>
 
             {error && (

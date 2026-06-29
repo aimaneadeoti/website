@@ -15,6 +15,7 @@ const toRow = (c) => ({
   created_at: c.createdAt,
   contact: c.contact || null,
   contact_phone: c.contactPhone || null,
+  price: c.price || 0,
 });
 
 const fromRow = (r) => ({
@@ -28,6 +29,7 @@ const fromRow = (r) => ({
   history: r.history || [],
   contact: r.contact || null,
   contactPhone: r.contact_phone || null,
+  price: r.price || 0,
 });
 
 export async function getClients() {
@@ -61,5 +63,47 @@ export async function renewClient(existingClient, newDates) {
 
 export async function deleteClient(id) {
   const { error } = await supabase.from('clients').delete().eq('id', id);
+  if (error) throw error;
+}
+
+const toBalanceRow = (b) => ({
+  date: b.date,
+  momo_pay: b.momoPay || 0,
+  moov_pay: b.moovPay || 0,
+  moov_credit: b.moovCredit || 0,
+  momo_ordi: b.momoOrdi || 0,
+  moov_ordi: b.moovOrdi || 0,
+  celtis: b.celtis || 0,
+  imprevu: b.imprevu || 0,
+});
+
+const fromBalanceRow = (r) => ({
+  id: r.id,
+  date: r.date,
+  momoPay: r.momo_pay,
+  moovPay: r.moov_pay,
+  moovCredit: r.moov_credit,
+  momoOrdi: r.momo_ordi,
+  moovOrdi: r.moov_ordi,
+  celtis: r.celtis,
+  imprevu: r.imprevu,
+});
+
+export async function getDailyBalances() {
+  const { data, error } = await supabase.from('daily_balance').select('*').order('date', { ascending: false });
+  if (error) throw error;
+  return data.map(fromBalanceRow);
+}
+
+export async function saveDailyBalance(balance) {
+  const { data: { user } } = await supabase.auth.getUser();
+  const { error } = await supabase
+    .from('daily_balance')
+    .upsert({ ...toBalanceRow(balance), user_id: user.id }, { onConflict: 'user_id,date' });
+  if (error) throw error;
+}
+
+export async function deleteDailyBalance(id) {
+  const { error } = await supabase.from('daily_balance').delete().eq('id', id);
   if (error) throw error;
 }
