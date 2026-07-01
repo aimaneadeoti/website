@@ -35,11 +35,11 @@ const buildWhatsAppMessage = (client, status) => {
   const phone = client.phone;
 
   const expiry = status === 'expired'
-    ? `s'est expiré depuis le ${date}`
-    : `expire le ${date}`;
+    ? `s'est expiré depuis le *${date}*`
+    : `expire le *${date}*`;
 
-  const body = `Votre illimité : ${op} activé sur le numéro : ${phone} ${expiry}. Souhaitez-vous le renouveler ? 📶`;
-  const msg = `Bonjour chers clients : ${contactName} ! 👋\n\n${body}`;
+  const body = `Votre illimité : *${op}* activé sur le numéro : *${phone}* ${expiry}. Souhaitez-vous le renouveler ? 📶`;
+  const msg = `*Bonjour chers clients : ${contactName} !* 👋\n\n${body}`;
   return encodeURIComponent(msg);
 };
 
