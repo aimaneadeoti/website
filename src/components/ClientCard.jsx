@@ -25,6 +25,7 @@ const formatPhone = (phone) => {
   const digits = phone.replace(/\D/g, '');
   if (digits.startsWith('00229')) return digits.slice(2);
   if (digits.startsWith('229')) return digits;
+  if (digits.length <= 8) return '22901' + digits;
   return '229' + digits;
 };
 

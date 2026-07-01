@@ -11,9 +11,10 @@ export default function AddNumberModal({ client, onAdd, onClose }) {
   const [price, setPrice] = useState('');
   const [error, setError] = useState('');
 
+  const clean = (val) => val.replace(/\s/g, '');
   const addPhone = () => setPhones(p => [...p, '']);
   const removePhone = (i) => setPhones(p => p.filter((_, idx) => idx !== i));
-  const updatePhone = (i, val) => setPhones(p => p.map((v, idx) => idx === i ? val : v));
+  const updatePhone = (i, val) => setPhones(p => p.map((v, idx) => idx === i ? clean(val) : v));
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -52,10 +53,10 @@ export default function AddNumberModal({ client, onAdd, onClose }) {
             {phones.map((phone, i) => (
               <div key={i} className="flex items-center gap-2">
                 <div className="flex flex-1">
-                  <span className="flex items-center px-3 bg-gray-100 border border-r-0 border-gray-200 rounded-l-xl text-sm font-semibold text-gray-600">+229</span>
+                  <span className="flex items-center px-3 bg-gray-100 border border-r-0 border-gray-200 rounded-l-xl text-sm font-semibold text-gray-600">+22901</span>
                   <input
                     type="tel"
-                    placeholder="07 XX XX XX XX"
+                    placeholder="XX XX XX XX"
                     value={phone}
                     onChange={e => updatePhone(i, e.target.value)}
                     autoFocus={i === 0}
