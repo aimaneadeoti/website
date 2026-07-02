@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
-import { Bell, Users, PlusCircle, Search, BellOff, TrendingUp, LogOut, Wallet, Download } from 'lucide-react';
+import { Bell, Users, PlusCircle, Search, BellOff, TrendingUp, LogOut, Wallet, Download, HandCoins } from 'lucide-react';
 import ClientCard from './components/ClientCard';
 import AddClientForm from './components/AddClientForm';
 import AddNumberModal from './components/AddNumberModal';
 import StatsView from './components/StatsView';
 import CaisseView from './components/CaisseView';
+import CreancesView from './components/CreancesView';
 import AuthPage from './components/AuthPage';
 import { getClients, addClient, renewClient as renewClientInDb, deleteClient, supabase, getDailyBalances } from './utils/supabase';
 import { requestPermission, checkAndNotify, checkAndNotifyNotRenewed, getExpiringClients, getNotRenewedClients, getClientStatus } from './utils/notifications';
@@ -274,8 +275,11 @@ export default function App() {
         {/* Caisse view */}
         {view === 'caisse' && <CaisseView />}
 
+        {/* Créances view */}
+        {view === 'creances' && <CreancesView showToast={showToast} />}
+
         {/* Client list */}
-        {view !== 'stats' && view !== 'caisse' && (loading ? (
+        {view !== 'stats' && view !== 'caisse' && view !== 'creances' && (loading ? (
           <div className="text-center py-16 text-gray-400">
             <div className="w-8 h-8 border-2 border-gray-300 border-t-gray-700 rounded-full animate-spin mx-auto mb-3" />
             <p className="text-sm">Chargement...</p>
@@ -300,42 +304,52 @@ export default function App() {
       </div>
 
       {/* Bottom navigation */}
-      <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-lg bg-white border-t border-gray-100 px-4 py-3 flex items-center justify-around z-40 shadow-lg">
+      <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-lg bg-white border-t border-gray-100 px-2 py-3 flex items-center justify-around z-40 shadow-lg">
         <button
           onClick={() => setView('list')}
-          className={`flex flex-col items-center gap-1 px-6 py-2 rounded-2xl transition-all ${
+          className={`flex flex-col items-center gap-1 px-3 py-2 rounded-2xl transition-all ${
             view === 'list' ? 'text-[#111827] bg-[#111827]/10 font-semibold' : 'text-gray-400'
           }`}
         >
-          <Users size={22} />
+          <Users size={20} />
           <span className="text-xs">Clients</span>
         </button>
 
         <button
           onClick={() => setView('caisse')}
-          className={`flex flex-col items-center gap-1 px-4 py-2 rounded-2xl transition-all ${
+          className={`flex flex-col items-center gap-1 px-3 py-2 rounded-2xl transition-all ${
             view === 'caisse' ? 'text-[#111827] bg-[#111827]/10 font-semibold' : 'text-gray-400'
           }`}
         >
-          <Wallet size={22} />
+          <Wallet size={20} />
           <span className="text-xs">Caisse</span>
         </button>
 
         <button
           onClick={() => { setRenewClient(null); setShowForm(true); }}
-          className="flex flex-col items-center gap-1 bg-[#111827] text-white px-6 py-3 rounded-2xl shadow-md hover:bg-[#1e2e26] transition-colors"
+          className="flex flex-col items-center gap-1 bg-[#111827] text-white px-4 py-3 rounded-2xl shadow-md hover:bg-[#1e2e26] transition-colors"
         >
-          <PlusCircle size={22} />
+          <PlusCircle size={20} />
           <span className="text-xs font-semibold">Ajouter</span>
         </button>
 
         <button
+          onClick={() => setView('creances')}
+          className={`flex flex-col items-center gap-1 px-3 py-2 rounded-2xl transition-all ${
+            view === 'creances' ? 'text-orange-500 bg-orange-50 font-semibold' : 'text-gray-400'
+          }`}
+        >
+          <HandCoins size={20} />
+          <span className="text-xs">Dettes</span>
+        </button>
+
+        <button
           onClick={() => setView('stats')}
-          className={`flex flex-col items-center gap-1 px-6 py-2 rounded-2xl transition-all ${
+          className={`flex flex-col items-center gap-1 px-3 py-2 rounded-2xl transition-all ${
             view === 'stats' ? 'text-[#111827] bg-[#111827]/10 font-semibold' : 'text-gray-400'
           }`}
         >
-          <TrendingUp size={22} />
+          <TrendingUp size={20} />
           <span className="text-xs">Stats</span>
         </button>
       </div>

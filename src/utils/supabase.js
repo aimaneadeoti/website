@@ -107,3 +107,25 @@ export async function deleteDailyBalance(id) {
   const { error } = await supabase.from('daily_balance').delete().eq('id', id);
   if (error) throw error;
 }
+
+export async function getCreances() {
+  const { data, error } = await supabase.from('creances').select('*').order('created_at', { ascending: false });
+  if (error) throw error;
+  return data;
+}
+
+export async function addCreance(creance) {
+  const { data: { user } } = await supabase.auth.getUser();
+  const { error } = await supabase.from('creances').insert({
+    user_id: user.id,
+    name: creance.name,
+    amount: creance.amount,
+    comment: creance.comment || null,
+  });
+  if (error) throw error;
+}
+
+export async function deleteCreance(id) {
+  const { error } = await supabase.from('creances').delete().eq('id', id);
+  if (error) throw error;
+}
