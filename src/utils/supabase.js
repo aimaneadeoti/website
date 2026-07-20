@@ -33,9 +33,25 @@ const fromRow = (r) => ({
 });
 
 export async function getClients() {
-  const { data, error } = await supabase.from('clients').select('*').order('expiration_date');
+  const { data, error } = await supabase.from('clients').select('*').eq('archived', false).order('expiration_date');
   if (error) throw error;
   return data.map(fromRow);
+}
+
+export async function getArchivedClients() {
+  const { data, error } = await supabase.from('clients').select('*').eq('archived', true).order('expiration_date', { ascending: false });
+  if (error) throw error;
+  return data.map(fromRow);
+}
+
+export async function archiveClient(id) {
+  const { error } = await supabase.from('clients').update({ archived: true }).eq('id', id);
+  if (error) throw error;
+}
+
+export async function restoreClient(id) {
+  const { error } = await supabase.from('clients').update({ archived: false }).eq('id', id);
+  if (error) throw error;
 }
 
 export async function addClient(client) {

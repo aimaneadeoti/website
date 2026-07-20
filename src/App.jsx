@@ -1,13 +1,14 @@
 import { useState, useEffect } from 'react';
-import { Bell, Users, PlusCircle, Search, BellOff, TrendingUp, LogOut, Wallet, Download, HandCoins } from 'lucide-react';
+import { Bell, Users, PlusCircle, Search, BellOff, TrendingUp, LogOut, Wallet, Download, HandCoins, Archive } from 'lucide-react';
 import ClientCard from './components/ClientCard';
 import AddClientForm from './components/AddClientForm';
 import AddNumberModal from './components/AddNumberModal';
 import StatsView from './components/StatsView';
 import CaisseView from './components/CaisseView';
 import CreancesView from './components/CreancesView';
+import ArchivesView from './components/ArchivesView';
 import AuthPage from './components/AuthPage';
-import { getClients, addClient, renewClient as renewClientInDb, deleteClient, supabase, getDailyBalances } from './utils/supabase';
+import { getClients, addClient, renewClient as renewClientInDb, deleteClient, archiveClient, supabase, getDailyBalances } from './utils/supabase';
 import { requestPermission, checkAndNotify, checkAndNotifyNotRenewed, getExpiringClients, getNotRenewedClients, getClientStatus } from './utils/notifications';
 
 const FILTERS = [
@@ -97,6 +98,13 @@ export default function App() {
     if (!confirm('Supprimer ce client ?')) return;
     await deleteClient(id);
     await loadClients();
+  };
+
+  const handleArchive = async (client) => {
+    if (!confirm(`Archiver ${client.name} ? Il disparaîtra de la liste principale.`)) return;
+    await archiveClient(client.id);
+    await loadClients();
+    showToast('📦 Client archivé');
   };
 
   const handleRenew = (client) => {
@@ -278,8 +286,11 @@ export default function App() {
         {/* Créances view */}
         {view === 'creances' && <CreancesView showToast={showToast} />}
 
+        {/* Archives view */}
+        {view === 'archives' && <ArchivesView showToast={showToast} />}
+
         {/* Client list */}
-        {view !== 'stats' && view !== 'caisse' && view !== 'creances' && (loading ? (
+        {view !== 'stats' && view !== 'caisse' && view !== 'creances' && view !== 'archives' && (loading ? (
           <div className="text-center py-16 text-gray-400">
             <div className="w-8 h-8 border-2 border-gray-300 border-t-gray-700 rounded-full animate-spin mx-auto mb-3" />
             <p className="text-sm">Chargement...</p>
@@ -298,6 +309,7 @@ export default function App() {
               onDelete={handleDelete}
               onRenew={handleRenew}
               onAddNumber={(c) => setAddNumberClient(c)}
+              onArchive={handleArchive}
             />
           ))
         ))}
@@ -351,6 +363,16 @@ export default function App() {
         >
           <TrendingUp size={20} />
           <span className="text-xs">Stats</span>
+        </button>
+
+        <button
+          onClick={() => setView('archives')}
+          className={`flex flex-col items-center gap-1 px-3 py-2 rounded-2xl transition-all ${
+            view === 'archives' ? 'text-gray-700 bg-gray-100 font-semibold' : 'text-gray-400'
+          }`}
+        >
+          <Archive size={20} />
+          <span className="text-xs">Archives</span>
         </button>
       </div>
 
