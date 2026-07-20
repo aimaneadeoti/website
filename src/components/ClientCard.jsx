@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Trash2, Phone, Calendar, RefreshCw, MessageCircle, ChevronDown, ChevronUp, PlusCircle } from 'lucide-react';
+import { Trash2, Phone, Calendar, RefreshCw, MessageCircle, ChevronDown, ChevronUp, PlusCircle, Archive } from 'lucide-react';
 import { getClientStatus } from '../utils/notifications';
 
 const OPERATOR_STYLES = {
@@ -44,7 +44,7 @@ const buildWhatsAppMessage = (client, status) => {
   return encodeURIComponent(msg);
 };
 
-export default function ClientCard({ client, onDelete, onRenew, onAddNumber }) {
+export default function ClientCard({ client, onDelete, onRenew, onAddNumber, onArchive }) {
   const status = getClientStatus(client.expirationDate);
   const op = OPERATOR_STYLES[client.operator] || OPERATOR_STYLES.moov;
   const st = STATUS_STYLES[status];
@@ -162,6 +162,15 @@ export default function ClientCard({ client, onDelete, onRenew, onAddNumber }) {
           >
             <RefreshCw size={16} />
           </button>
+          {status === 'expired' && onArchive && (
+            <button
+              onClick={() => onArchive(client)}
+              className="p-2 rounded-xl bg-gray-100 text-gray-500 hover:bg-gray-200 transition-colors"
+              title="Archiver"
+            >
+              <Archive size={16} />
+            </button>
+          )}
           <button
             onClick={() => onDelete(client.id)}
             className="p-2 rounded-xl bg-red-50 text-red-500 hover:bg-red-100 transition-colors"
